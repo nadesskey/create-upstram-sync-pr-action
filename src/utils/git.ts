@@ -1,3 +1,4 @@
+import * as github from '@actions/github';
 import { exec } from '@actions/exec';
 import { logger } from './config';
 
@@ -35,6 +36,20 @@ export async function initializeGitConfig() {
 
 export async function initializeUpstream(token: string, owner?: string, repo?: string) {
   if (owner == null || repo == null) {
+    try {
+      const { data: repoData } = await github.getOctokit(token).rest.repos.get({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+      });
+      owner = repoData.parent?.owner?.login;
+      repo = repoData.parent?.name;
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error(error.message);
+      }
+      throw new Error('Failed to get repository information.');
+    }
+
     throw new Error("Upstream owner and repo must be specified or provided through a fork relationship.");
   }
 
