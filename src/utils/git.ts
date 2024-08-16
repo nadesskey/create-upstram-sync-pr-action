@@ -43,14 +43,19 @@ export async function initializeUpstream(token: string, owner?: string, repo?: s
       });
       owner = repoData.parent?.owner?.login;
       repo = repoData.parent?.name;
+
+      logger.debug(`Upstream owner (with parent): ${owner}`);
+      logger.debug(`Upstream repo (with parent): ${repo}`);
+      if (owner && repo) {
+        logger.info(`Upstream repository (from fork parent) : ${owner}/${repo}`);
+      }
     } catch (error) {
       if (error instanceof Error) {
         logger.error(error.message);
       }
-      throw new Error('Failed to get repository information.');
-    }
 
-    throw new Error("Upstream owner and repo must be specified or provided through a fork relationship.");
+      throw new Error("Failed to get repository information.\nUpstream owner and repo must be specified or provided through a fork relationship.");
+    }
   }
 
   validateGitHub(owner, { name: 'owner', throwOnFail: true });
