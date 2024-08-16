@@ -83,7 +83,7 @@ export async function initializeUpstream(token: string, owner?: string, repo?: s
   await exec('git', ['remote', 'add', 'upstream', upstreamUrl]);
 
   // (private repoなこともあるため)tokenを使って認証する
-  await exec('git', ['config', '--global', `url."https://x-access-token:${token}@github.com".insteadOf`, 'https://github.com']);
+  await exec('git', ['config', '--local', `url.https://x-access-token:${token}@github.com.insteadOf`, 'https://github.com']);
 
   // upstreamをfetchする
   // upstreamが取得できない場合はエラーにする
