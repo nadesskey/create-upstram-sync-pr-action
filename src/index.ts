@@ -26,7 +26,9 @@ async function run() {
       await exec('git', ['merge', `upstream/${head}`], execOptions);
     } catch (error) {
       if (mergeOutput.includes('CONFLICT')) {
-        core.setFailed('Merge conflict detected. Please resolve conflicts manually.');
+        const errorMessage = 'Merge conflict detected. Please resolve conflicts manually.';
+        core.setFailed(errorMessage);
+        logger.error(errorMessage);
         return;
       }
     }
@@ -36,6 +38,13 @@ async function run() {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       state: 'open'
+    }).catch(error => {
+      if (error instanceof Error) {
+        core.setFailed(error.message);
+      } else {
+        core.setFailed('An unknown error occurred.');
+      }
+      return { data: [] };
     });
 
     const existingPR = pullRequests.find(pr => 
