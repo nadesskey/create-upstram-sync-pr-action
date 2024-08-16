@@ -10,7 +10,7 @@ async function run() {
     await initializeGitConfig();
     const upstream = await initializeUpstream(token, upstreamOwner, upstreamRepo);
 
-    await exec(`git checkout ${base}`);
+    await exec(`git switch ${base}`);
 
     let mergeOutput = '';
     let execOptions = {
@@ -49,16 +49,19 @@ async function run() {
       return;
     }
 
-    const { data: pullRequest } = await octokit.rest.pulls.create({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      title: `Sync with upstream/${head} to ${base}`,
-      head: `${upstream.owner}:${head}`,  // リモートのリポジトリ名を含む
-      base: base,
-      body: 'This PR was automatically created to sync with upstream changes.',
-    });
-
-    core.setOutput('pr-url', pullRequest.html_url);
+    try {
+      const { data: pullRequest } = await octokit.rest.pulls.create({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        title: `Sync with upstream/${head} to ${base}`,
+        head: `${upstream.owner}:${head}`,
+        base: base,
+        body: 'This PR was automatically created to sync with upstream changes.',
+      });
+      core.setOutput('pr-url', pullRequest.html_url);
+    } catch (error) {
+      core.setFailed('Failed to create pull request.');
+    }
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message);

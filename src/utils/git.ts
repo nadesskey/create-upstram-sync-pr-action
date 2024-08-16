@@ -14,11 +14,9 @@ const validateGitHub = (value: string, options?: { name?: string, throwOnFail?: 
   const result = pattern.test(value);
 
   if (!result) {
-    let msg = ''
+    let msg = `Invalid GitHub name: ${value}`;
     if (options?.name) {
       msg = `Invalid GitHub ${options.name} name: ${value}`;
-    } else {
-      msg = `Invalid GitHub name: ${value}`;
     }
 
     if (options?.throwOnFail) { throw new Error(msg); }
@@ -46,7 +44,11 @@ export async function initializeUpstream(token: string, owner?: string, repo?: s
   const upstreamUrl = `https://github.com/${owner}/${repo}.git`;
 
   // 既にupstreamが存在する場合を考慮して、一度削除してから追加することで上書きする
-  await exec('git', ['remote', 'remove', 'upstream'], { ignoreReturnCode: true });
+  try {
+    await exec('git', ['remote', 'remove', 'upstream']);
+  } catch (error) {
+    logger.debug('Failed to remove branch upstream. This may be due to no existing upstream to remove.');
+  }
   await exec('git', ['remote', 'add', 'upstream', upstreamUrl]);
 
   // (private repoなこともあるため)tokenを使って認証する

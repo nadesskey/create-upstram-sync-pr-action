@@ -3,9 +3,9 @@ import Logger from './logger';
 
 export const logger = Logger.use('[upstream-sync]');
 
-function getOptionalInput(name: string): string | undefined {
+function getOptionalInput(name: string, defaultValue?: string): string | undefined {
   const value = core.getInput(name, { required: false });
-  return value !== '' ? value : undefined;
+  return value !== '' ? value : defaultValue;
 }
 
 export function getConfig() {
