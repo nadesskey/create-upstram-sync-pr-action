@@ -1,5 +1,5 @@
 export default class Logger {
-  static instances: Logger[];
+  static instances: Logger[] = [];
   #prefix: string;
 
   constructor(prefix = '') {
