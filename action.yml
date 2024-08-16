@@ -1,0 +1,24 @@
+name: 'Sync with Upstream'
+description: 'Automatically fetch and merge upstream changes from one branch to another, and create a Pull Request.'
+inputs:
+  upstream-owner:
+    description: 'The owner of the upstream repository. Defaults to the fork source repo owner or error if not provided.'
+    required: false
+  upstream-repo:
+    description: 'The name of the upstream repository. Defaults to the fork source repo name or error if not provided.'
+    required: false
+  head:
+    description: 'The branch in the upstream repository to merge from (head).'
+    required: true
+  base:
+    description: 'The branch in the current repository to merge into (base).'
+    required: true
+  github-token:
+    description: 'GitHub token for authentication.'
+    required: false
+outputs:
+  pr-url:
+    description: 'The URL of the created Pull Request.'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
