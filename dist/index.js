@@ -32196,7 +32196,7 @@ class Logger {
         console.log(__classPrivateFieldGet(this, _Logger_prefix, "f"), ...args);
     }
     debug(...args) {
-        console.debug(__classPrivateFieldGet(this, _Logger_prefix, "f"), ...args);
+        console.debug("##[debug]", __classPrivateFieldGet(this, _Logger_prefix, "f"), ...args);
     }
     info(...args) {
         console.info(__classPrivateFieldGet(this, _Logger_prefix, "f"), ...args);
@@ -32251,6 +32251,7 @@ function getConfig() {
 ;// CONCATENATED MODULE: ./src/utils/git.ts
 
 
+
 /* *
  * GitHubのowner名やrepo名が正しくない場合はエラーにする
   * @param value GitHubのowner名やrepo名
@@ -32260,6 +32261,17 @@ function getConfig() {
   * @returns 正しい場合はtrue、正しくない場合はfalse
   */
 const validateGitHub = (value, options) => {
+    if (typeof value !== 'string') {
+        let msg = 'GitHub name is not a string';
+        if (options?.name) {
+            msg = `GitHub ${options.name} name is not a string`;
+        }
+        if (options?.throwOnFail) {
+            throw new Error(msg);
+        }
+        console.debug(msg);
+        return false;
+    }
     const pattern = /^[a-zA-Z0-9-]+$/;
     const result = pattern.test(value);
     if (!result) {
@@ -32281,7 +32293,25 @@ async function initializeGitConfig() {
 }
 async function initializeUpstream(token, owner, repo) {
     if (owner == null || repo == null) {
-        throw new Error("Upstream owner and repo must be specified or provided through a fork relationship.");
+        try {
+            const { data: repoData } = await github.getOctokit(token).rest.repos.get({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+            });
+            owner = repoData.parent?.owner?.login;
+            repo = repoData.parent?.name;
+            config_logger.debug(`Upstream owner (with parent): ${owner}`);
+            config_logger.debug(`Upstream repo (with parent): ${repo}`);
+            if (owner && repo) {
+                config_logger.info(`Upstream repository (from fork parent) : ${owner}/${repo}`);
+            }
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                config_logger.error(error.message);
+            }
+            throw new Error("Failed to get repository information.\nUpstream owner and repo must be specified or provided through a fork relationship.");
+        }
     }
     validateGitHub(owner, { name: 'owner', throwOnFail: true });
     validateGitHub(repo, { name: 'repo', throwOnFail: true });
