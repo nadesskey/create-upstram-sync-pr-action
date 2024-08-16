@@ -2,10 +2,10 @@ name: 'Sync with Upstream'
 description: 'Automatically fetch and merge upstream changes from one branch to another, and create a Pull Request.'
 inputs:
   upstream-owner:
-    description: 'The owner of the upstream repository. Defaults to the current repository owner if not provided.'
+    description: 'The owner of the upstream repository. Defaults to the fork source repo owner or error if not provided.'
     required: false
   upstream-repo:
-    description: 'The name of the upstream repository. Defaults to the current repository name if not provided.'
+    description: 'The name of the upstream repository. Defaults to the fork source repo name or error if not provided.'
     required: false
   head:
     description: 'The branch in the upstream repository to merge from (head).'
