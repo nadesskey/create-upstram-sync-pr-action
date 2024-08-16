@@ -10,7 +10,18 @@ import { logger } from './config';
   * @param options.throwOnFail エラーが発生した場合に例外をスローするかどうか
   * @returns 正しい場合はtrue、正しくない場合はfalse
   */
-const validateGitHub = (value: string, options?: { name?: string, throwOnFail?: boolean }) => {
+const validateGitHub = (value: any, options?: { name?: string, throwOnFail?: boolean }) => {
+  if (typeof value !== 'string') {
+    let msg = 'GitHub name is not a string';
+    if (options?.name) {
+      msg = `GitHub ${options.name} name is not a string`;
+    }
+
+    if (options?.throwOnFail) { throw new Error(msg); }
+    console.debug(msg);
+    return false;
+  }
+
   const pattern = /^[a-zA-Z0-9-]+$/;
   const result = pattern.test(value);
 
