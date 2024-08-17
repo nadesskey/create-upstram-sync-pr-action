@@ -32412,7 +32412,8 @@ async function run() {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 title: `Sync with upstream/${head} to ${base}`,
-                head: `${upstream.owner}:${head}`,
+                head: head,
+                head_repo: `${upstream.owner}/${upstream.repo}`,
                 base: base,
                 body: 'This PR was automatically created to sync with upstream changes.',
             });
