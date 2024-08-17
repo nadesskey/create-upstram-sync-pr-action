@@ -32421,7 +32421,7 @@ async function run() {
         }
         catch (error) {
             console.debug(error);
-            core.setFailed('Failed to create pull request.\n Have you given the necessary permissions?');
+            core.setFailed('Failed to create pull request. Have you given the necessary permissions?');
         }
     }
     catch (error) {
