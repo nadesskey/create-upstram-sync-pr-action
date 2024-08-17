@@ -70,7 +70,7 @@ async function run() {
       const { data: pullRequest } = await octokit.rest.pulls.create({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        title: `Sync with upstream/${head} to ${base}`,
+        title: `Sync with ${upstream.owner}/${upstream.repo} ${head} to ${base}`,
         head: head,
         head_repo: `${upstream.owner}/${upstream.repo}`,
         base: base,
