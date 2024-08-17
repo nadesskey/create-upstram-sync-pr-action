@@ -20,6 +20,25 @@ GitHub Action to fetch upstream on fork. This creates PR when changes detected.
 ## example
 [example.yml](https://github.com/nadesskey/create-upstream-sync-pr-action/blob/master/example.yml)
 
+## Sequence Diagram(s)
+```mermaid
+sequenceDiagram
+    participant User
+    participant GitHubAction
+    participant UpstreamRepo
+    participant Logger
+
+    User->>GitHubAction: Trigger Sync Action
+    GitHubAction->>Logger: Log Start
+    GitHubAction->>UpstreamRepo: Fetch Changes
+    alt Changes Found
+        GitHubAction->>GitHubAction: Create Pull Request
+        GitHubAction->>Logger: Log Success
+    else No Changes
+        GitHubAction->>Logger: Log No Changes
+    end
+```
+
 ## alternatives
 - Bot strategy: https://github.com/wei/pull
 - fork-sync: https://github.com/tgymnich/fork-sync?tab=readme-ov-file
