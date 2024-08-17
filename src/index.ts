@@ -8,9 +8,9 @@ async function run() {
   try {
     const { token, base, upstreamOwner, upstreamRepo, head } = getConfig();
     await initializeGitConfig();
-    const upstream = await initializeUpstream(token, upstreamOwner, upstreamRepo);
-
+    
     await exec(`git switch ${base}`);
+    const upstream = await initializeUpstream(token, upstreamOwner, upstreamRepo);
 
     let mergeOutput = '';
     let execOptions = {
@@ -25,7 +25,15 @@ async function run() {
     try {
       await exec('git', ['merge', `upstream/${head}`], execOptions);
     } catch (error) {
-      if (mergeOutput.includes('CONFLICT')) {
+      if (mergeOutput.includes('refusing to merge unrelated histories')) {
+        core.warning('Unrelated histories detected. Retrying merge with --allow-unrelated-histories.');
+        try {
+          await exec('git', ['merge', `upstream/${head}`, '--allow-unrelated-histories']);
+        } catch (mergeError) {
+          core.setFailed('Merge failed even with --allow-unrelated-histories.');
+          return;
+        }
+      } else if (mergeOutput.includes('CONFLICT')) {
         const errorMessage = 'Merge conflict detected. Please resolve conflicts manually.';
         core.setFailed(errorMessage);
         logger.error(errorMessage);
