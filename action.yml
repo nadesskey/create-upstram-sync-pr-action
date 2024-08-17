@@ -13,9 +13,10 @@ inputs:
   base:
     description: 'The branch in the current repository to merge into (base).'
     required: true
-  github-token:
+  token:
     description: 'GitHub token for authentication.'
     required: false
+    default: ${{ github.token }}
 outputs:
   pr-url:
     description: 'The URL of the created Pull Request.'

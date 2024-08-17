@@ -32230,7 +32230,7 @@ function getOptionalInput(name, defaultValue) {
 }
 function getConfig() {
     // github actionsで実行されるため、GITHUB_TOKENはundefinedになることはない
-    const token = core.getInput('github-token', { required: false }) || process.env.GITHUB_TOKEN;
+    const token = core.getInput('token', { required: true });
     const base = core.getInput('base', { required: true });
     const upstreamOwner = getOptionalInput('upstream-owner');
     const upstreamRepo = getOptionalInput('upstream-repo');
