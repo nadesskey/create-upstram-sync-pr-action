@@ -32420,7 +32420,7 @@ async function run() {
             core.setOutput('pr-url', pullRequest.html_url);
         }
         catch (error) {
-            console.error(error);
+            console.debug(error);
             core.setFailed('Failed to create pull request.\n Have you given the necessary permissions?');
         }
     }
