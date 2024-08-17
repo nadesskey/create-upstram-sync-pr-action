@@ -75,6 +75,7 @@ async function run() {
         head_repo: `${upstream.owner}/${upstream.repo}`,
         base: base,
         body: 'This PR was automatically created to sync with upstream changes.',
+        maintainer_can_modify: false
       });
       core.setOutput('pr-url', pullRequest.html_url);
     } catch (error) {
