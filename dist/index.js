@@ -32287,9 +32287,11 @@ const validateGitHub = (value, options) => {
     }
     return result;
 };
-async function initializeGitConfig() {
+async function initializeGitConfig(token) {
     await (0,exec.exec)('git', ['config', '--global', 'user.name', 'github-actions']);
     await (0,exec.exec)('git', ['config', '--global', 'user.email', 'actions@github.com']);
+    // (private repoなこともあるため)tokenを使って認証する
+    await (0,exec.exec)('git', ['config', '--local', `url.https://x-access-token:${token}@github.com.insteadOf`, 'https://github.com']);
 }
 async function initializeUpstream(token, owner, repo) {
     if (owner == null || repo == null) {
@@ -32324,8 +32326,6 @@ async function initializeUpstream(token, owner, repo) {
         config_logger.debug('Failed to remove branch upstream. This may be due to no existing upstream to remove.');
     }
     await (0,exec.exec)('git', ['remote', 'add', 'upstream', upstreamUrl]);
-    // (private repoなこともあるため)tokenを使って認証する
-    await (0,exec.exec)('git', ['config', '--local', `url.https://x-access-token:${token}@github.com.insteadOf`, 'https://github.com']);
     // upstreamをfetchする
     // upstreamが取得できない場合はエラーにする
     try {
@@ -32353,7 +32353,7 @@ async function initializeUpstream(token, owner, repo) {
 async function run() {
     try {
         const { token, base, upstreamOwner, upstreamRepo, head } = getConfig();
-        await initializeGitConfig();
+        await initializeGitConfig(token);
         await (0,exec.exec)(`git switch ${base}`);
         const upstream = await initializeUpstream(token, upstreamOwner, upstreamRepo);
         let mergeOutput = '';
