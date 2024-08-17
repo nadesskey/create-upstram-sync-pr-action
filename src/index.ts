@@ -3,6 +3,7 @@ import * as github from '@actions/github';
 import { exec } from '@actions/exec';
 import { logger, getConfig } from './utils/config';
 import { initializeGitConfig , initializeUpstream } from './utils/git';
+import { exit } from 'process';
 
 async function run() {
   try {
@@ -37,7 +38,7 @@ async function run() {
         const errorMessage = 'Merge conflict detected. Please resolve conflicts manually.';
         core.setFailed(errorMessage);
         logger.error(errorMessage);
-        return;
+        exit(0);
       }
     }
 
@@ -79,7 +80,9 @@ async function run() {
       });
       core.setOutput('pr-url', pullRequest.html_url);
     } catch (error) {
-      logger.error(`Failed to create pull request: ${error.message}`);
+      if (error instanceof Error) {
+        logger.error("Failed to create pull request:", error.message);
+      }
       core.setFailed('Failed to create pull request. Have you given the necessary permissions?');
     }
   } catch (error) {
