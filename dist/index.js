@@ -32325,7 +32325,7 @@ async function initializeUpstream(token, owner, repo) {
     }
     await (0,exec.exec)('git', ['remote', 'add', 'upstream', upstreamUrl]);
     // (private repoなこともあるため)tokenを使って認証する
-    await (0,exec.exec)('git', ['config', '--global', `url.https://x-access-token:${token}@github.com.insteadOf`, 'https://github.com']);
+    await (0,exec.exec)('git', ['config', '--local', `url.https://x-access-token:${token}@github.com.insteadOf`, 'https://github.com']);
     // upstreamをfetchする
     // upstreamが取得できない場合はエラーにする
     try {
@@ -32354,8 +32354,8 @@ async function run() {
     try {
         const { token, base, upstreamOwner, upstreamRepo, head } = getConfig();
         await initializeGitConfig();
-        const upstream = await initializeUpstream(token, upstreamOwner, upstreamRepo);
         await (0,exec.exec)(`git switch ${base}`);
+        const upstream = await initializeUpstream(token, upstreamOwner, upstreamRepo);
         let mergeOutput = '';
         let execOptions = {
             listeners: {
@@ -32369,7 +32369,17 @@ async function run() {
             await (0,exec.exec)('git', ['merge', `upstream/${head}`], execOptions);
         }
         catch (error) {
-            if (mergeOutput.includes('CONFLICT')) {
+            if (mergeOutput.includes('refusing to merge unrelated histories')) {
+                core.warning('Unrelated histories detected. Retrying merge with --allow-unrelated-histories.');
+                try {
+                    await (0,exec.exec)('git', ['merge', `upstream/${head}`, '--allow-unrelated-histories']);
+                }
+                catch (mergeError) {
+                    core.setFailed('Merge failed even with --allow-unrelated-histories.');
+                    return;
+                }
+            }
+            else if (mergeOutput.includes('CONFLICT')) {
                 const errorMessage = 'Merge conflict detected. Please resolve conflicts manually.';
                 core.setFailed(errorMessage);
                 config_logger.error(errorMessage);
