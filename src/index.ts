@@ -77,7 +77,8 @@ async function run() {
       });
       core.setOutput('pr-url', pullRequest.html_url);
     } catch (error) {
-      core.setFailed('Failed to create pull request.');
+      console.error(error);
+      core.setFailed('Failed to create pull request.\n Have you given the necessary permissions?');
     }
   } catch (error) {
     if (error instanceof Error) {
