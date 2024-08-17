@@ -10,7 +10,7 @@ function getOptionalInput(name: string, defaultValue?: string): string | undefin
 
 export function getConfig() {
   // github actionsで実行されるため、GITHUB_TOKENはundefinedになることはない
-  const token = core.getInput('github-token', { required: false }) || (process.env.GITHUB_TOKEN as string);
+  const token = core.getInput('token', { required: true });
   const base = core.getInput('base', { required: true });
 
   const upstreamOwner = getOptionalInput('upstream-owner');

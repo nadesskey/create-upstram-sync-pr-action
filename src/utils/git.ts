@@ -1,3 +1,4 @@
+import * as github from '@actions/github';
 import { exec } from '@actions/exec';
 import { logger } from './config';
 
@@ -9,7 +10,18 @@ import { logger } from './config';
   * @param options.throwOnFail エラーが発生した場合に例外をスローするかどうか
   * @returns 正しい場合はtrue、正しくない場合はfalse
   */
-const validateGitHub = (value: string, options?: { name?: string, throwOnFail?: boolean }) => {
+const validateGitHub = (value: any, options?: { name?: string, throwOnFail?: boolean }) => {
+  if (typeof value !== 'string') {
+    let msg = 'GitHub name is not a string';
+    if (options?.name) {
+      msg = `GitHub ${options.name} name is not a string`;
+    }
+
+    if (options?.throwOnFail) { throw new Error(msg); }
+    console.debug(msg);
+    return false;
+  }
+
   const pattern = /^[a-zA-Z0-9-]+$/;
   const result = pattern.test(value);
 
@@ -28,14 +40,35 @@ const validateGitHub = (value: string, options?: { name?: string, throwOnFail?: 
   return result;
 }
 
-export async function initializeGitConfig() {
+export async function initializeGitConfig(token: string) {
   await exec('git', ['config', '--global', 'user.name', 'github-actions']);
   await exec('git', ['config', '--global', 'user.email', 'actions@github.com']);
+  // (private repoなこともあるため)tokenを使って認証する
+  await exec('git', ['config', '--local', `url.https://x-access-token:${token}@github.com.insteadOf`, 'https://github.com']);
 }
 
 export async function initializeUpstream(token: string, owner?: string, repo?: string) {
   if (owner == null || repo == null) {
-    throw new Error("Upstream owner and repo must be specified or provided through a fork relationship.");
+    try {
+      const { data: repoData } = await github.getOctokit(token).rest.repos.get({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+      });
+      owner = repoData.parent?.owner?.login;
+      repo = repoData.parent?.name;
+
+      logger.debug(`Upstream owner (with parent): ${owner}`);
+      logger.debug(`Upstream repo (with parent): ${repo}`);
+      if (owner && repo) {
+        logger.info(`Upstream repository (from fork parent) : ${owner}/${repo}`);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error(error.message);
+      }
+
+      throw new Error("Failed to get repository information.\nUpstream owner and repo must be specified or provided through a fork relationship.");
+    }
   }
 
   validateGitHub(owner, { name: 'owner', throwOnFail: true });
@@ -50,9 +83,6 @@ export async function initializeUpstream(token: string, owner?: string, repo?: s
     logger.debug('Failed to remove branch upstream. This may be due to no existing upstream to remove.');
   }
   await exec('git', ['remote', 'add', 'upstream', upstreamUrl]);
-
-  // (private repoなこともあるため)tokenを使って認証する
-  await exec('git', ['config', '--global', `url."https://x-access-token:${token}@github.com".insteadOf`, 'https://github.com']);
 
   // upstreamをfetchする
   // upstreamが取得できない場合はエラーにする

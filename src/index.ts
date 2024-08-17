@@ -7,10 +7,10 @@ import { initializeGitConfig , initializeUpstream } from './utils/git';
 async function run() {
   try {
     const { token, base, upstreamOwner, upstreamRepo, head } = getConfig();
-    await initializeGitConfig();
-    const upstream = await initializeUpstream(token, upstreamOwner, upstreamRepo);
-
+    await initializeGitConfig(token);
+    
     await exec(`git switch ${base}`);
+    const upstream = await initializeUpstream(token, upstreamOwner, upstreamRepo);
 
     let mergeOutput = '';
     let execOptions = {
@@ -25,7 +25,15 @@ async function run() {
     try {
       await exec('git', ['merge', `upstream/${head}`], execOptions);
     } catch (error) {
-      if (mergeOutput.includes('CONFLICT')) {
+      if (mergeOutput.includes('refusing to merge unrelated histories')) {
+        core.warning('Unrelated histories detected. Retrying merge with --allow-unrelated-histories.');
+        try {
+          await exec('git', ['merge', `upstream/${head}`, '--allow-unrelated-histories']);
+        } catch (mergeError) {
+          core.setFailed('Merge failed even with --allow-unrelated-histories.');
+          return;
+        }
+      } else if (mergeOutput.includes('CONFLICT')) {
         const errorMessage = 'Merge conflict detected. Please resolve conflicts manually.';
         core.setFailed(errorMessage);
         logger.error(errorMessage);
@@ -62,14 +70,17 @@ async function run() {
       const { data: pullRequest } = await octokit.rest.pulls.create({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        title: `Sync with upstream/${head} to ${base}`,
-        head: `${upstream.owner}:${head}`,
+        title: `Sync with ${upstream.owner}/${upstream.repo} ${head} to ${base}`,
+        head: head,
+        head_repo: `${upstream.owner}/${upstream.repo}`,
         base: base,
         body: 'This PR was automatically created to sync with upstream changes.',
+        maintainer_can_modify: false
       });
       core.setOutput('pr-url', pullRequest.html_url);
     } catch (error) {
-      core.setFailed('Failed to create pull request.');
+      logger.error(`Failed to create pull request: ${error.message}`);
+      core.setFailed('Failed to create pull request. Have you given the necessary permissions?');
     }
   } catch (error) {
     if (error instanceof Error) {

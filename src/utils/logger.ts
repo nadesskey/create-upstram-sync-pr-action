@@ -11,7 +11,7 @@ export default class Logger {
   }
 
   debug(...args: any[]) {
-    console.debug(this.#prefix, ...args);
+    console.debug("##[debug]", this.#prefix, ...args);
   }
 
   info(...args: any[]) {
