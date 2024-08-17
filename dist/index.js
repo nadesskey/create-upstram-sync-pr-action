@@ -32344,7 +32344,10 @@ async function initializeUpstream(token, owner, repo) {
     };
 }
 
+;// CONCATENATED MODULE: external "process"
+const external_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("process");
 ;// CONCATENATED MODULE: ./src/index.ts
+
 
 
 
@@ -32383,7 +32386,7 @@ async function run() {
                 const errorMessage = 'Merge conflict detected. Please resolve conflicts manually.';
                 core.setFailed(errorMessage);
                 config_logger.error(errorMessage);
-                return;
+                (0,external_process_namespaceObject.exit)(0);
             }
         }
         const octokit = github.getOctokit(token);
@@ -32421,7 +32424,9 @@ async function run() {
             core.setOutput('pr-url', pullRequest.html_url);
         }
         catch (error) {
-            console.debug(error);
+            if (error instanceof Error) {
+                config_logger.error("Failed to create pull request:", error.message);
+            }
             core.setFailed('Failed to create pull request. Have you given the necessary permissions?');
         }
     }

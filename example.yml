@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Sync with upstream repository
-        uses: nadesskey/create-upstream-sync-pr-action@v0
+        uses: nadesskey/create-upstream-sync-pr-action@v1
         with:
           base: 'tai-cha' # Branch to create PR
           head: 'master' # Branch to merge (should be upstream branch name)
