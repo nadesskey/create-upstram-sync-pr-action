@@ -7,7 +7,7 @@ import { initializeGitConfig , initializeUpstream } from './utils/git';
 async function run() {
   try {
     const { token, base, upstreamOwner, upstreamRepo, head } = getConfig();
-    await initializeGitConfig();
+    await initializeGitConfig(token);
     
     await exec(`git switch ${base}`);
     const upstream = await initializeUpstream(token, upstreamOwner, upstreamRepo);

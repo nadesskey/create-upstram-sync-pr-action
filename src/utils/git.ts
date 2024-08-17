@@ -40,9 +40,11 @@ const validateGitHub = (value: any, options?: { name?: string, throwOnFail?: boo
   return result;
 }
 
-export async function initializeGitConfig() {
+export async function initializeGitConfig(token: string) {
   await exec('git', ['config', '--global', 'user.name', 'github-actions']);
   await exec('git', ['config', '--global', 'user.email', 'actions@github.com']);
+  // (private repoなこともあるため)tokenを使って認証する
+  await exec('git', ['config', '--local', `url.https://x-access-token:${token}@github.com.insteadOf`, 'https://github.com']);
 }
 
 export async function initializeUpstream(token: string, owner?: string, repo?: string) {
@@ -81,9 +83,6 @@ export async function initializeUpstream(token: string, owner?: string, repo?: s
     logger.debug('Failed to remove branch upstream. This may be due to no existing upstream to remove.');
   }
   await exec('git', ['remote', 'add', 'upstream', upstreamUrl]);
-
-  // (private repoなこともあるため)tokenを使って認証する
-  await exec('git', ['config', '--local', `url.https://x-access-token:${token}@github.com.insteadOf`, 'https://github.com']);
 
   // upstreamをfetchする
   // upstreamが取得できない場合はエラーにする
